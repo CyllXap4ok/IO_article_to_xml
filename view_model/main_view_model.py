@@ -5,15 +5,17 @@ from data.enum_const import FileType
 from data.extractor.data_extractor import DataExtractor
 from data.extractor.extraction_strategy import ArticleExtractionStrategy, ReviewExtractionStrategy
 from data.saver.data_saver import DataSaver
+from data.saver.saving_strategy import SavingStrategies
 
 
 class MainViewModel:
 
     _article_data = ArticleData()
     _data_extractor = DataExtractor()
+    _data_saver = DataSaver()
 
     _filepaths: dict[FileType, list[str]] = {}
-    _progress_elements = 2
+    _progress_elements = len(SavingStrategies)
 
     def extract_data(self, progress_callback: Callable):
         self._progress_elements += sum(map(len, self._filepaths.values()))
@@ -32,10 +34,13 @@ class MainViewModel:
                 progress_callback(100 / self._progress_elements)
 
     def save_data(self, saving_path: str, progress_callback: Callable):
-        DataSaver().save_data(
-            saving_path=saving_path,
-            article_data=self._article_data
-        )
+
+        for strategy in SavingStrategies:
+            self._data_saver.set_strategy(strategy.value)
+            self._data_saver.save_data(saving_path, self._article_data)
+            progress_callback(100 / self._progress_elements)
+
+        self._progress_elements = len(SavingStrategies)
         self._article_data.clear()
 
     def set_file_paths(self, file_type: FileType, paths: list[str]):

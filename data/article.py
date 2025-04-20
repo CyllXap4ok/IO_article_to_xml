@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from author import Author
-from enum_const import Language, ArticleType, Code
+from data.author import Author
+from data.enum_const import Language, ArticleType, Code
 
 @dataclass
 class ArticleDataLang:

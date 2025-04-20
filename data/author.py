@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
-from enum_const import Language, AuthorRole
-from workplace import Workplace
+from data.enum_const import Language, AuthorRole
+from data.workplace import Workplace
 
 
 @dataclass
