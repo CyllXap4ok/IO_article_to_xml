@@ -1,0 +1,31 @@
+[project]
+name = "pyarticlestoxml"
+version = "0.1.0"
+description = "Py App to create XML from article"
+authors = [
+    {name = "Pavel Pimenov"}
+]
+license = {text = "INEOS"}
+readme = "README.md"
+packages=[{include = "articles_to_xml"}]
+requires-python = "^3.13"
+dependencies = [
+]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "^7.2.0"
+pylint = "^3.3.6"
+
+[tool.pylint.MASTER]
+load-plugins = ["pylint.extensions.bad_builtin"]
+ignore = ["tests", ".venv", ".idea", ".git", "__pycache__"]
+
+[tool.pylint.MESSAGES_CONTROL]
+disable = "missing-module-docstring,import-error"
+
+[tool.pylint.BASIC]
+good-names = ["i", "j", "k", "x", "y", "z"]

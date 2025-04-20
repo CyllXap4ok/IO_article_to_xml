@@ -1,10 +1,15 @@
 import os
 import tkinter as tk
+
 from tkinter import filedialog
-from typing import Callable
 from progress_window import ProgressWindow
-from article import ArticleData
-from data_utils import DataExtractor, DataSaver, FileType
+from typing import Callable
+
+from data_utils.extractor.data_extractor import DataExtractor
+from data_utils.extractor.extraction_strategy import ArticleExtractionStrategy, ReviewExtractionStrategy
+from data_utils.saver.data_saver import DataSaver
+from data_utils.enum_const import FileType
+from data_utils.article import ArticleData
 
 
 class InfoExtractorApp:
@@ -59,11 +64,7 @@ class InfoExtractorApp:
             text='Извлечь информацию',
             command=lambda: (
                 progress_window.open(),
-                DataExtractor().extract_data(
-                    filepaths=self.filepaths,
-                    article_data=self.article_data,
-                    progress_callback=progress_window.update_progress
-                ),
+                self.extract_data(progress_callback=progress_window.update_progress),
                 DataSaver().save_data(
                     saving_path=filedialog.asksaveasfilename(
                         title='Сохранить файл',
@@ -83,12 +84,22 @@ class InfoExtractorApp:
             command=lambda: ()
         ).pack(pady=10, side=tk.BOTTOM)
 
+    def extract_data(self, progress_callback: Callable):
+        data_extractor = DataExtractor()
+        total_elements = sum(map(len, self.filepaths.values()))
 
-    def file_selector_button(
-        self,
-        name: str,
-        button_command: Callable[[], None]
-    ):
+        for file_type, paths in self.filepaths.items():
+            """ Устанавливаем стратегию в зависимости от типа файлов """
+            match file_type:
+                case (FileType.Article): data_extractor.set_strategy(ArticleExtractionStrategy())
+                case (FileType.Review): data_extractor.set_strategy(ReviewExtractionStrategy())
+
+            for path in paths:
+                """ Извлекаем информацию и обновляем прогресс """
+                data_extractor.extract_data(path, self.article_data)
+                progress_callback(100 / total_elements)
+
+    def file_selector_button(self, name: str, button_command: Callable[[], None]):
         frame = tk.Frame(self.root)
         frame.pack(pady=5, padx=5, fill='x')
 

@@ -1,5 +1,10 @@
 from enum import Enum
 
+class FileType(Enum):
+    Article = 163411
+    Review = 274521
+    EssentialInfo = 315236
+
 class Language(Enum):
     RUS = 'Русский'
     ENG = 'Английский'

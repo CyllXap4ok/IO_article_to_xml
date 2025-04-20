@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from common import Language, AuthorRole
+from enum_const import Language, AuthorRole
 from workplace import Workplace
 
 
