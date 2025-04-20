@@ -1,5 +1,5 @@
-from data_utils.article import ArticleData
-from data_utils.extractor.extraction_strategy import DataExtractionStrategy
+from data.article import ArticleData
+from data.extractor.extraction_strategy import DataExtractionStrategy
 
 
 class DataExtractor:

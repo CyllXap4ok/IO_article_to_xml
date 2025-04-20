@@ -6,10 +6,10 @@ from unidecode import unidecode
 from docx import Document
 from docx.table import _Cell
 
-from data_utils.article import ArticleData
-from data_utils.author import Author
-from data_utils.workplace import Workplace, WorkplaceFactory
-from data_utils.enum_const import Language, AuthorRole
+from data.article import ArticleData
+from data.author import Author
+from data.workplace import Workplace, WorkplaceFactory
+from data.enum_const import Language, AuthorRole
 
 
 class DataExtractionStrategy(ABC):
