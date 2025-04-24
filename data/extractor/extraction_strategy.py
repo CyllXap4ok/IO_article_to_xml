@@ -8,7 +8,7 @@ from docx.table import _Cell
 
 from data.article import ArticleData
 from data.author import Author
-from data.workplace import Workplace, WorkplaceFactory
+from data.workplace import Workplace
 from data.enum_const import Language, AuthorRole
 
 
@@ -105,13 +105,17 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
 
         for paragraph in workplaces_cell.paragraphs:
             if paragraph.runs[0].font.superscript:
-                if workplace_text: workplaces[workplace_index] = WorkplaceFactory.create(
-                    workplace_text.replace('\n', ' '))
+                if workplace_text:
+                    text = workplace_text.replace('\n', ' ')
+                    workplaces[workplace_index] = Workplace.Builder().parse(text).build()
+
                 workplace_index = paragraph.runs[0].text.strip()
                 workplace_text = ''.join([run.text for run in paragraph.runs[1:]])
             else:
                 workplace_text += paragraph.text
-        workplaces[unidecode(workplace_index)] = WorkplaceFactory.create(workplace_text)
+
+        text = workplace_text.replace('\n', ' ')
+        workplaces[unidecode(workplace_index)] = Workplace.Builder().parse(text).build()
 
         return workplaces
 

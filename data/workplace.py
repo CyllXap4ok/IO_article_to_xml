@@ -8,30 +8,43 @@ class Workplace:
     town: str = ''
     country: str = ''
 
+    class Builder:
 
-class WorkplaceFactory:
+        def __init__(self):
+            self._workplace = Workplace()
 
-    @staticmethod
-    def create(workplace_text: str) -> Workplace:
-        workplace = Workplace()
-        # Место работы из статьи, разбитое по запятым
-        workplace_text_parts = [part.strip(' ') for part in workplace_text.split(',')]
-        is_workplace_name = True
+        def parse(self, workplace_text: str) -> "Workplace.Builder":
+            text_parts = [part.strip(' ') for part in workplace_text.split(',')]
+            is_workplace_name = True
 
-        for part in workplace_text_parts:
-            if part.endswith(tuple('0123456789')) or (bool(re.search(r'\d', part)) and '.' in part):
-                is_workplace_name = False
-                continue
+            for part in text_parts:
+                if self._is_address_part(part):
+                    is_workplace_name = False
+                    continue
 
-            if is_workplace_name:
-                workplace.name += part + ', '
-            else:
-                if not part.startswith(tuple('0123456789')):
-                    workplace.town += part + ', '
+                if is_workplace_name:
+                    self._workplace.name += part + ', '
                 else:
-                    workplace.country += part.strip('0123456789 ')
+                    if not part.startswith(tuple('0123456789')):
+                        self._workplace.town += part + ', '
+                    else:
+                        self._workplace.country += part.strip('0123456789 ')
 
-        workplace.name = workplace.name.strip(', ')
-        workplace.town = workplace.town.strip(', ')
-        workplace.country = workplace.country.strip(', ')
-        return workplace
+            self._clean_fields()
+            return self
+
+        @staticmethod
+        def _is_address_part(part: str):
+            return (part.endswith(tuple('0123456789')) or
+                    (bool(re.search(r'\d', part)) and '.' in part))
+
+        def _clean_fields(self):
+            for field in ['name', 'town', 'country']:
+                setattr(
+                    __obj=self._workplace,
+                    __name=field,
+                    __value=getattr(self._workplace, field).strip(', ')
+                )
+
+        def build(self) -> "Workplace":
+            return self._workplace
