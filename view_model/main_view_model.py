@@ -5,7 +5,7 @@ from data.enum_const import FileType
 from data.extractor.data_extractor import DataExtractor
 from data.extractor.extraction_strategy import ArticleExtractionStrategy, ReviewExtractionStrategy
 from data.saver.data_saver import DataSaver
-from data.saver.saving_strategy import SavingStrategies
+from data.saver.saving_strategy import SavingStrategies, XMLSavingStrategy, DocxSavingStrategy
 
 
 class MainViewModel:
@@ -35,7 +35,7 @@ class MainViewModel:
 
     def save_data(self, saving_path: str, progress_callback: Callable):
 
-        for strategy in SavingStrategies:
+        for strategy in (XMLSavingStrategy, DocxSavingStrategy):
             self._data_saver.set_strategy(strategy.value)
             self._data_saver.save_data(saving_path, self._article_data)
             progress_callback(100 / self._progress_elements)

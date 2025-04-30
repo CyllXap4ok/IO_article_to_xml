@@ -1,7 +1,4 @@
-"""Модуль стратегий сохранения
-
-   При добавлении новой стратегии обязательно добавить её в enum SavingStrategies в конце файла!
-"""
+"""Модуль стратегий сохранения"""
 
 import xml.etree.ElementTree as XMLT
 
@@ -26,10 +23,6 @@ class DocxSavingStrategy(DataSavingStrategy):
 
     def save_data(self, saving_path: str, data: ArticleData):
         path = saving_path + '.docx'
-        print(data.pages)
-        print(data.received_date)
-        print(data.accepted_date)
-        print(data.codes[Code.DOI])
 
 
 class XMLSavingStrategy(DataSavingStrategy):
@@ -40,12 +33,12 @@ class XMLSavingStrategy(DataSavingStrategy):
         article = XMLT.Element('article')
 
         pages = XMLT.SubElement(article, 'pages')
-        pages.text = ''
+        pages.text = data.pages
 
         self.__add_authors(article, data.authors)
 
         art_type = XMLT.SubElement(article, 'artType')
-        art_type.text = "ОБЯЗАТЕЛЬНЫЙ элемент"
+        art_type.text = data.article_type.name
 
         lang_publ = XMLT.SubElement(article, "langPubl")
         lang_publ.text = "ВАРИАТИВНЫЙ элемент"
@@ -60,13 +53,6 @@ class XMLSavingStrategy(DataSavingStrategy):
                     XMLT.SubElement(parent, tag, lang=lang.name).text = value
 
         self.__create_readable_xml(article, path)
-
-    @staticmethod
-    def __create_lang_sub_elements(parent: Element, tag: str) -> dict[Language, Element]:
-        return {
-            lang: XMLT.SubElement(parent, tag, lang=lang.name)
-            for lang in Language
-        }
 
     def __add_authors(self, parent: Element, authors: [Author]):
         authors_el = XMLT.SubElement(parent, 'authors')
@@ -85,6 +71,14 @@ class XMLSavingStrategy(DataSavingStrategy):
             self.__add_author_lang_elements(individual_info, 'surname', author)
             self.__add_author_lang_elements(individual_info, 'initials', author)
             self.__add_organisations(individual_info, author)
+
+    @staticmethod
+    def __create_lang_sub_elements(parent: Element, tag: str) -> dict[Language, Element]:
+        """ Создание нескольких языковых элементов """
+        return {
+            lang: XMLT.SubElement(parent, tag, lang=lang.name)
+            for lang in Language
+        }
 
     @staticmethod
     def __add_author_lang_elements(parents: dict[Language, Element], attr: str, author: Author):
@@ -110,13 +104,3 @@ class XMLSavingStrategy(DataSavingStrategy):
         readable_xml = minidom.parseString(xml_string).toprettyxml(indent='  ')
         with open(path, "w", encoding="utf-8") as f:
             f.write(readable_xml)
-
-
-class SavingStrategies(Enum):
-    """Список стратегий
-
-       Для добавления новой надо создать свойство по правилу:
-       расширение = DataSavingStrategy()
-    """
-    docx = DocxSavingStrategy()
-    xml = XMLSavingStrategy()
