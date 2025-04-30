@@ -30,6 +30,6 @@ class AuthorRole(Enum):
     Reviewer = '23'
 
 class Code(Enum):
-    DOI = 'doi'
-    UDK = 'udk'
-    rubric = 'rubric'
+    DOI = 'ДОИ'
+    UDK = 'УДК'
+    SISTI = 'ГРНТИ'

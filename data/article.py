@@ -30,7 +30,7 @@ class ArticleData:
             codes (dict(Code, str)): Коды статьи (UDK, EDN, DOI...)
             authors (list(Author)): Список авторов статьи, включая рецензентов
             __languages (dict(Language, ArticleDataLang)): Словарь, содержащий информацию статьи для каждого языка.
-        """
+    """
     received_date: str = ''
     accepted_date: str = ''
     authors: list[Author] = field(default_factory=list)  # готово
