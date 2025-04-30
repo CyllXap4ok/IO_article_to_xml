@@ -13,8 +13,8 @@ class ArticleDataLang:
         text (str): Текст статьи от Introduction до References
         funding (str): Финансирование. Находится в статье под заголовком Acknowledgements
     """
-    title: str = ''
-    abstract: str = ''
+    title: str = '' # готово
+    abstract: str = '' # готово
     keywords: list[str] = field(default_factory=list)  # готово
     text: str = ''  # готово
     funding: str = ''  # готово
@@ -31,10 +31,12 @@ class ArticleData:
             authors (list(Author)): Список авторов статьи, включая рецензентов
             __languages (dict(Language, ArticleDataLang)): Словарь, содержащий информацию статьи для каждого языка.
         """
-    pages = ''
-    article_type = ArticleType.UNK
-    codes: dict[Code, str | list[str]] = field(default_factory=dict) # СДЕЛАТЬ. Брать из строгой формы essential information
+    received_date: str = ''
+    accepted_date: str = ''
     authors: list[Author] = field(default_factory=list)  # готово
+    pages = ''  # СДЕЛАТЬ. Брать из строгой формы essential information
+    article_type = ArticleType.UNK  # СДЕЛАТЬ. Брать из строгой формы essential information
+    codes: dict[Code, str | list[str]] = field(default_factory=dict)  # СДЕЛАТЬ. Брать из строгой формы essential information
     __languages: dict[Language, ArticleDataLang] = field(default_factory=dict)
 
     def __getitem__(self, lang: Language):

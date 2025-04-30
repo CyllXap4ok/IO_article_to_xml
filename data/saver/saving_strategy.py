@@ -12,7 +12,7 @@ from xml.dom import minidom
 
 from data.article import ArticleData
 from data.author import Author
-from data.enum_const import Language, AuthorRole
+from data.enum_const import Language, AuthorRole, Code
 
 
 class DataSavingStrategy(ABC):
@@ -26,6 +26,10 @@ class DocxSavingStrategy(DataSavingStrategy):
 
     def save_data(self, saving_path: str, data: ArticleData):
         path = saving_path + '.docx'
+        print(data.pages)
+        print(data.received_date)
+        print(data.accepted_date)
+        print(data.codes[Code.DOI])
 
 
 class XMLSavingStrategy(DataSavingStrategy):

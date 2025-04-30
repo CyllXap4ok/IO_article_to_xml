@@ -9,7 +9,7 @@ from docx.table import _Cell
 from data.article import ArticleData
 from data.author import Author
 from data.workplace import Workplace
-from data.enum_const import Language, AuthorRole
+from data.enum_const import Language, AuthorRole, Code
 
 
 class DataExtractionStrategy(ABC):
@@ -44,9 +44,16 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
 
         """ 
             СТРУКТУРА unique_cells:
-            ___________________________
+            _________________________________
             Индекс   |   Cодержание
-            ___________________________
+            _________________________________
+                     |   сайт
+                     |   год, том (выпуск), сраницы
+                     |   DOI: 
+              2      |   
+                     |   received
+                     |   accepted
+            _________|_______________________
               3      |   авторы
               4      |   места работы
               5      |   абстракт
@@ -55,7 +62,27 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
 
         data_holder[Language.ENG].abstract = unique_cells[5].text.replace("Abstract\n", "")
         data_holder[Language.ENG].keywords = self.__extract_keywords(unique_cells[7])
+        data_holder.pages = self.__extract_pages(unique_cells[2])
+        data_holder.codes[Code.DOI] = self.__extract_DOI(unique_cells[2])
+        data_holder.received_date = self.__extract_date(unique_cells[2], "Received")
+        data_holder.accepted_date = self.__extract_date(unique_cells[2], "Accepted")
         data_holder.authors = self.__extract_authors(unique_cells[3], unique_cells[4])
+
+    @staticmethod
+    def __extract_pages(cell: _Cell) -> str:
+        return cell.paragraphs[1].text.split(',')[-1].strip()
+
+    @staticmethod
+    def __extract_DOI(cell: _Cell) -> str:
+        for paragraph in cell.paragraphs:
+            if paragraph.text.startswith("DOI:"):
+                return paragraph.text[3:].strip()
+
+    @staticmethod
+    def __extract_date(cell: _Cell, keyword: str) -> str:
+        for paragraph in cell.paragraphs:
+            if paragraph.text.startswith(keyword):
+                return paragraph.text[len(keyword)-1:].strip(', ')
 
     @staticmethod
     def __extract_keywords(keywords_cell: _Cell) -> list[str]:
