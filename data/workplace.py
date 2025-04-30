@@ -39,12 +39,9 @@ class Workplace:
                     (bool(re.search(r'\d', part)) and '.' in part))
 
         def _clean_fields(self):
-            for field in ['name', 'town', 'country']:
-                setattr(
-                    __obj=self._workplace,
-                    __name=field,
-                    __value=getattr(self._workplace, field).strip(', ')
-                )
+            self._workplace.name = self._workplace.name.strip(', ')
+            self._workplace.town = self._workplace.name.strip(', ')
+            self._workplace.country = self._workplace.name.strip(', ')
 
         def build(self) -> "Workplace":
             return self._workplace

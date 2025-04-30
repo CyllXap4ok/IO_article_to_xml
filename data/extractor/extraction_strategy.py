@@ -76,13 +76,13 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
     def __extract_DOI(cell: _Cell) -> str:
         for paragraph in cell.paragraphs:
             if paragraph.text.startswith("DOI:"):
-                return paragraph.text[3:].strip()
+                return paragraph.text[4:].strip()
 
     @staticmethod
     def __extract_date(cell: _Cell, keyword: str) -> str:
         for paragraph in cell.paragraphs:
             if paragraph.text.startswith(keyword):
-                return paragraph.text[len(keyword)-1:].strip(', ')
+                return paragraph.text[len(keyword):].strip(', ')
 
     @staticmethod
     def __extract_keywords(keywords_cell: _Cell) -> list[str]:
