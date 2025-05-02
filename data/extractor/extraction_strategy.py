@@ -2,6 +2,8 @@ import os
 import re
 
 from abc import ABC, abstractmethod
+
+from docx.text.paragraph import Paragraph
 from unidecode import unidecode
 from docx import Document
 from docx.table import _Cell
@@ -73,10 +75,10 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
         return cell.paragraphs[1].text.split(',')[-1].strip()
 
     @staticmethod
-    def __extract_DOI(cell: _Cell) -> str:
+    def __extract_DOI(cell: _Cell) -> list[str]:
         for paragraph in cell.paragraphs:
             if paragraph.text.startswith("DOI:"):
-                return paragraph.text[4:].strip()
+                return [paragraph.text[4:].strip()]
 
     @staticmethod
     def __extract_date(cell: _Cell, keyword: str) -> str:
@@ -84,12 +86,55 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
             if paragraph.text.startswith(keyword):
                 return paragraph.text[len(keyword):].strip(', ')
 
-    @staticmethod
-    def __extract_keywords(keywords_cell: _Cell) -> list[str]:
+    def __extract_keywords(self, keywords_cell: _Cell) -> list[str]:
+
+        formatted_text = self.__extract_formatted_keywords(keywords_cell)
+
         return [
-            keyword.strip()
-            for keyword in re.split(r',\s+(?![^()]*\))', keywords_cell.text[10:-1])
+            keyword.strip('. ')
+            for keyword in re.split(r',\s+(?![^()]*\))', formatted_text)
         ]
+
+    @staticmethod
+    def __extract_formatted_keywords(cell: _Cell) -> str:
+        """
+            Извлекает ключевые слова из параграфа с сохранением форматирования
+            (курсив, жирный и т.д.).
+
+            Возвращает строку с HTML-подобными тегами (<i>, <b>, <sub>, <sup>).
+        """
+        formatted_text = []
+        remaining_chars_to_skip = len('Key words:')
+
+        for paragraph in cell.paragraphs:
+
+            for run in paragraph.runs:
+                run_text = run.text
+                run_length = len(run_text)
+
+                if remaining_chars_to_skip > 0:
+                    if run_length <= remaining_chars_to_skip:
+                        # Весь run — часть префикса, пропускаем
+                        remaining_chars_to_skip -= run_length
+                        continue
+                    else:
+                        # Часть run'а — префикс, часть — полезный текст
+                        run_text = run_text[remaining_chars_to_skip:]
+                        remaining_chars_to_skip = 0
+
+                    # Применяем форматирование
+                if run.font.italic:
+                    run_text = f"<i>{run_text}</i>"
+                if run.font.bold:
+                    run_text = f"<b>{run_text}</b>"
+                if run.font.subscript:
+                    run_text = f"<sub>{run_text}</sub>"
+                if run.font.superscript:
+                    run_text = f"<sup>{run_text}</sup>"
+
+                formatted_text.append(run_text)
+
+        return "".join(formatted_text)
 
     def __extract_authors(self, authors_cell: _Cell, workplaces_cell: _Cell) -> list[Author]:
         workplaces: dict[str, Workplace] = self.__extract_workplaces(workplaces_cell)
@@ -146,34 +191,46 @@ class ArticleExtractionStrategy(DataExtractionStrategy):
 
         return workplaces
 
-    @staticmethod
-    def __extract_text_data(doc: Document, data_holder: ArticleData):
-        is_article_text = True
+    def __extract_text_data(self, doc: Document, data_holder: ArticleData):
+
         is_funding_text = False
 
-        # Проходимся по параграфам в поисках нужных абзацев
         for paragraph in doc.paragraphs:
 
             # Некоторые абзацы одного стиля почему-то делятся на разные стили, несмотря на то,
             # что раны у всех могут быть bold, поэтому проверяем дополнительно их. При этой проверке вылезают
             # пустые абзацы, поэтому исключаем их дополнительным условием
-            if paragraph.style.font.bold or all(run.font.bold for run in paragraph.runs) and paragraph.text != "":
+            if self.__is_bold(paragraph) and self.__is_arial_font(paragraph):
 
-                # Находим начало и конец записи для каждого пункта по ключевым словам
-                if paragraph.text == "Acknowledgements":
+                if paragraph.text.strip() == "Acknowledgements":
                     is_funding_text = True
-                elif paragraph.text == "Corresponding author":
-                    is_article_text = False
-                    is_funding_text = False
-                elif paragraph.text == "References":
+                elif paragraph.text.strip() == "Corresponding author":
                     break
 
-                # Добавляем заголовок в article_text без цифр в начале и пропускаем последующий код цикла
-                if is_article_text: data_holder[Language.ENG].text += paragraph.text.lstrip("0123456789. ") + " "
-                continue
+                if paragraph.text:
+                    # Добавляем заголовок в ArticleData.text без цифр в начале и пропускаем последующий код цикла
+                    data_holder[Language.ENG].text += paragraph.text.strip("0123456789. ") + " "
+                    continue
 
-            if is_article_text: data_holder[Language.ENG].text += paragraph.text + " "
-            if is_funding_text: data_holder[Language.ENG].funding += paragraph.text + " "
+            data_holder[Language.ENG].text += paragraph.text + " "
+
+            if is_funding_text:
+                data_holder[Language.ENG].funding += paragraph.text + " "
+
+        data_holder[Language.ENG].text = data_holder[Language.ENG].text.strip()
+        data_holder[Language.ENG].funding = data_holder[Language.ENG].funding.strip()
+
+    @staticmethod
+    def __is_bold(paragraph: Paragraph):
+        return paragraph.style.font.bold or all(run.font.bold for run in paragraph.runs)
+
+    @staticmethod
+    def __is_arial_font(paragraph: Paragraph):
+        for run in paragraph.runs:
+            if run.font.name and run.font.name.lower() != "arial":
+                return False
+
+        return True
 
 
 class ReviewExtractionStrategy(DataExtractionStrategy):
@@ -181,7 +238,7 @@ class ReviewExtractionStrategy(DataExtractionStrategy):
     def extract_data(self, path: str, data_holder: ArticleData):
         doc = self.get_doc(path)
 
-        surname, initials = self.__extract_name_from_review_path(path).rsplit(maxsplit=1)
+        surname, initials = self.__extract_name_from_review_path(path).split(maxsplit=1)
 
         review = ''
         is_review = False

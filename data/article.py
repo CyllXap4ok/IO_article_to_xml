@@ -36,7 +36,8 @@ class ArticleData:
     authors: list[Author] = field(default_factory=list)  # готово
     pages = '' # готово
     article_type = ArticleType.UNK  # СДЕЛАТЬ. Брать из строгой формы essential information
-    codes: dict[Code, str | list[str]] = field(default_factory=dict)  # СДЕЛАТЬ. Брать из строгой формы essential information
+    codes: dict[Code, list[str]] = field(default_factory=dict) # СДЕЛАТЬ. Брать из строгой формы essential information
+    rubrics: list[str] = field(default_factory=list) # СДЕЛАТЬ. Брать из строгой формы essential information
     __languages: dict[Language, ArticleDataLang] = field(default_factory=dict)
 
     def __getitem__(self, lang: Language):

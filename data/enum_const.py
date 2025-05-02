@@ -32,4 +32,4 @@ class AuthorRole(Enum):
 class Code(Enum):
     DOI = 'ДОИ'
     UDK = 'УДК'
-    SISTI = 'ГРНТИ'
+    EDN = 'ЕДН'

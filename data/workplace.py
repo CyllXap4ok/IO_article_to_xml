@@ -40,8 +40,8 @@ class Workplace:
 
         def _clean_fields(self):
             self._workplace.name = self._workplace.name.strip(', ')
-            self._workplace.town = self._workplace.name.strip(', ')
-            self._workplace.country = self._workplace.name.strip(', ')
+            self._workplace.town = self._workplace.town.strip(', ')
+            self._workplace.country = self._workplace.country.strip(', ')
 
         def build(self) -> "Workplace":
             return self._workplace
