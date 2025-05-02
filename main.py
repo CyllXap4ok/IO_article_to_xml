@@ -1,10 +1,9 @@
-import os
 import tkinter as tk
-
 from tkinter import filedialog
-from progress_window import ProgressWindow
 from typing import Callable
+from pathlib import Path
 
+from progress_window import ProgressWindow
 from data.enum_const import FileType
 from view_model.main_view_model import MainViewModel
 
@@ -87,22 +86,28 @@ class InfoExtractorApp:
 
         if file_paths:
             self.view_model.set_file_paths(file_type, file_paths)
-            self.labels[index].config(text=', '.join([os.path.basename(path) for path in file_paths]), fg='black')
+            self.labels[index].config(text=', '.join([Path(path).name for path in file_paths]), fg='black')
 
     def select_file(self, file_type: FileType, extensions: list[str], index: int):
-        file_path = filedialog.askopenfilename(filetypes=[('Word Documents', extensions)])
+        path = filedialog.askopenfilename(filetypes=[('Word Documents', extensions)])
 
-        if file_path:
-            self.view_model.set_file_paths(file_type, [file_path])
-            self.labels[index].config(text=os.path.basename(file_path), fg='black')
+        if path:
+            self.view_model.set_file_paths(file_type, [path])
+            self.labels[index].config(text=Path(path).name, fg='black')
 
-    @staticmethod
-    def select_saving_path() -> str:
-        return filedialog.asksaveasfilename(
-                title='Сохранить файл',
-                defaultextension='',
-                filetypes=[('All files', '*')]
+    def select_saving_path(self) -> str:
+        article_path = self.view_model.get_article_path()
+        article_name = Path(article_path).stem
+
+        saving_path = filedialog.asksaveasfilename(
+            title='Сохранить файл',
+            initialdir=Path(article_path).parent,
+            initialfile=article_name + '_EL.xml',
+            defaultextension='',
+            filetypes=[('XML', '.xml')]
         )
+
+        return str(Path(saving_path).with_suffix(''))
 
 if __name__ == "__main__":
     root = tk.Tk()

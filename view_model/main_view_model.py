@@ -15,7 +15,9 @@ class MainViewModel:
     _data_saver = DataSaver()
 
     _filepaths: dict[FileType, list[str]] = {}
+
     _saving_strategies = (XMLSavingStrategy, DocxSavingStrategy)
+
     _progress_elements = len(_saving_strategies)
 
     def extract_data(self, progress_callback: Callable):
@@ -46,6 +48,9 @@ class MainViewModel:
 
     def set_file_paths(self, file_type: FileType, paths: list[str]):
         self._filepaths[file_type] = paths
+
+    def get_article_path(self) -> str:
+        return self._filepaths[FileType.Article][0]
 
     def clear_file_paths(self):
         self._filepaths.clear()
